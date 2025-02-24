@@ -1,25 +1,24 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using nimap_assessment.Models;
+using nimap_assessment.Service;
 
 namespace nimap_assessment.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly IConfiguration configuration;
-        ProductCrud productdb;
-        CategoryCrud categorydb;
-        public ProductController(IConfiguration configuration)
+        private readonly IProductService productService;
+        private readonly ICategoryService categoryService;
+      
+        public ProductController(IProductService productService, ICategoryService categoryService)
         {
-            this.configuration = configuration;
-            productdb = new ProductCrud(this.configuration);
-            categorydb = new CategoryCrud(this.configuration);
-
+            this.productService = productService;
+            this.categoryService = categoryService;
         }
         // GET: ProductController
         public ActionResult Index(int pg=1)
         {
-            var products = productdb.GetProducts();
+            var products = productService.GetAllProducts();
 
             const int pagesize = 10;
             if (pg < 1)
@@ -43,14 +42,14 @@ namespace nimap_assessment.Controllers
         // GET: ProductController/Details/5
         public ActionResult Details(int id)
         {
-            var result = productdb.GetProductById(id);
+            var result = productService.GetProductById(id);
             return View(result);
         }
 
         // GET: ProductController/Create
         public ActionResult Create()
         {
-            ViewBag.Categories = categorydb.GetCategories();
+            ViewBag.Categories = categoryService.GetAllCaterories();
             //var res = categorydb.GetCategories();
             return View();
         }
@@ -63,7 +62,7 @@ namespace nimap_assessment.Controllers
             try
             {
                
-                int result = productdb.AddProduct(product);
+                int result = productService.AddProduct(product);
                 if (result >= 1)
                 {
                     return RedirectToAction(nameof(Index));
@@ -79,7 +78,7 @@ namespace nimap_assessment.Controllers
             catch(Exception ex)
             {
                 ViewBag.ErrorMsg = ex.Message;
-                ViewBag.Categories = categorydb.GetCategories();
+                ViewBag.Categories = categoryService.GetAllCaterories();
                 return View(product);
             }
         }
@@ -89,8 +88,8 @@ namespace nimap_assessment.Controllers
         // GET: ProductController/Edit/5
         public ActionResult Edit(int id)
         {
-            ViewBag.Categories = categorydb.GetCategories();
-            var res=productdb.GetProductById(id);
+            ViewBag.Categories = categoryService.GetAllCaterories();
+            var res=productService.GetProductById(id);
             return View(res);
         }
 
@@ -101,7 +100,7 @@ namespace nimap_assessment.Controllers
         {
             try
             {
-                int response=productdb.UpdateProduct(product);
+                int response= productService.UpdateProduct(product);
                 if (response >= 1)
                 {
 
@@ -123,7 +122,7 @@ namespace nimap_assessment.Controllers
         // GET: ProductController/Delete/5
         public ActionResult Delete(int id)
         {
-            var res = productdb.DeleteProduct(id);
+            var res = productService.DeleteProduct(id);
             return View(res);
         }
 
@@ -135,7 +134,7 @@ namespace nimap_assessment.Controllers
         {
             try
             {
-                int response= productdb.DeleteProduct(id);
+                int response= productService.DeleteProduct(id);
                 if (response >= 1)
                 {
 

@@ -1,32 +1,51 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using nimap_assessment.Models;
+using nimap_assessment.Service;
 
 namespace nimap_assessment.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly IConfiguration configuration;
-        CategoryCrud categorydb;
-        public CategoryController(IConfiguration configuration)
+        
+        private readonly ICategoryService categoryService;
+        public CategoryController(ICategoryService categoryService)
         {
-            this.configuration = configuration;
-            categorydb = new CategoryCrud(this.configuration);
+            this.categoryService = categoryService;
+           
         }
 
         // GET: CategoryController
-        public ActionResult Index()
+        public ActionResult Index(int pg=1)
         {
-            var result = categorydb.GetCategories();
+            var result = categoryService.GetAllCaterories();
+            const int pagesize = 10;
+            if (pg < 1)
+            {
+                pg = 1;
+            }
+
+            int recscount = result.Count();
+
+            var pager = new Pager(recscount, pg, pagesize);
+
+            int recskip = (pg - 1) * pagesize;
+
+            var data = result.Skip(recskip).Take(pager.PageSize).ToList();
+
+            this.ViewBag.Pager = pager;
+
+
             return View(result);
+
         }
 
         // GET: CategoryController/Details/5
-        public ActionResult Details(int id)
-        {
-            var result = categorydb.GetCategoryById(id);
-            return View(result);
-        }
+        //public ActionResult Details(int id)
+        //{
+        //    var result = categorydb.GetCategoryById(id);
+        //    return View(result);
+        //}
 
         // GET: CategoryController/Create
         public ActionResult Create()
@@ -41,11 +60,11 @@ namespace nimap_assessment.Controllers
         {
             try
             {
-                int result = categorydb.AddCategory(category);
+                int result = categoryService.AddCategory(category);
                 if (result >= 1)
                 {
 
-                     return RedirectToAction(nameof(Index));
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
@@ -53,7 +72,7 @@ namespace nimap_assessment.Controllers
                     return View();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ViewBag.ErrorMsg = ex.Message;
                 return View();
@@ -63,7 +82,7 @@ namespace nimap_assessment.Controllers
         // GET: CategoryController/Edit/5
         public ActionResult Edit(int id)
         {
-            var res = categorydb.GetCategoryById(id);
+            var res = categoryService.GetCategoryById(id);
             return View(res);
         }
 
@@ -74,7 +93,7 @@ namespace nimap_assessment.Controllers
         {
             try
             {
-                int res = categorydb.UpdateCategory(category);
+                int res = categoryService.UpdateCategory(category);
                 if (res >= 1)
                 {
 
@@ -86,7 +105,7 @@ namespace nimap_assessment.Controllers
                     return View();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ViewBag.ErrorMsg = ex.Message;
                 return View();
@@ -96,7 +115,7 @@ namespace nimap_assessment.Controllers
         // GET: CategoryController/Delete/5
         public ActionResult Delete(int id)
         {
-            var res = categorydb.GetCategoryById(id);
+            var res = categoryService.GetCategoryById(id);
             return View(res);
         }
 
@@ -108,8 +127,8 @@ namespace nimap_assessment.Controllers
         {
             try
             {
-                int response = categorydb.DeleteCategory(id);
-                if(response >= 1)
+                int response = categoryService.DeleteCategory(id);
+                if (response >= 1)
                 {
 
                     return RedirectToAction(nameof(Index));
@@ -120,7 +139,7 @@ namespace nimap_assessment.Controllers
                     return View();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ViewBag.ErrorMsg = ex.Message;
                 return View();
